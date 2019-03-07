@@ -31,12 +31,12 @@ import java.util.List;
  * Created by Chilling on 2017/12/16.
  */
 
-public class VirtualVideoView extends GLSurfaceTextureProducerView {
+public class VirtualVideoViewImp extends GLSurfaceTextureProducerView implements IVirtualVideoView {
 
     private TextureFilter textureFilter = new BasicTextureFilter();
 
     //Video
-    private Surface mProducerSurface;
+    protected Surface mProducerSurface;
     private int mVideoWidth;
     private int mVideoHeight;
     // rotate
@@ -51,28 +51,19 @@ public class VirtualVideoView extends GLSurfaceTextureProducerView {
     private MultiTexOffScreenCanvas multiTexOffScreenCanvas;
     private MyRecorder mRecorder = null;
 
-    public VirtualVideoView(Context context) {
+    public VirtualVideoViewImp(Context context) {
         super(context);
     }
-    public VirtualVideoView(Context context, AttributeSet attrs) {
+    public VirtualVideoViewImp(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
-    public VirtualVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public VirtualVideoViewImp(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
 
     @Override
     protected void init() {
         super.init();
-     /*   float[] matrix4 = {
-                1.0f, 0.0f, 0.0f, 0.3f,
-                0.0f, 1.0f, 0.0f, 0.4f,
-                0.0f, 0.0f, 1.0f, 0.0f,
-                0.0f, 0.0f, 0.0f, 1.0f
-        };
-        ColorMatrixFilter colorMatrixFilter = new ColorMatrixFilter(0.3f, matrix4);*/
-        PixelationFilter pixelationFilter = new PixelationFilter(8);
-        textureFilter = pixelationFilter;
         initTextureView();
     }
 
@@ -81,10 +72,12 @@ public class VirtualVideoView extends GLSurfaceTextureProducerView {
         this.requestRender();
     }
 
+    @Override
     public Surface getProduceSurface(){
         return mProducerSurface;
     }
 
+    @Override
     public void drawBitmap(Bitmap bitmap, int left, int top){
         mBitmap = bitmap;
         mBitmapLeft = left;
@@ -92,6 +85,7 @@ public class VirtualVideoView extends GLSurfaceTextureProducerView {
         this.requestRender();
     }
 
+    @Override
     public void rotate(float degree, float px, float py) {
         mDegree = degree;
         mRotateCenterX = px;
@@ -99,22 +93,10 @@ public class VirtualVideoView extends GLSurfaceTextureProducerView {
         this.requestRender();
     }
 
-    private Surface mRecordSurface;
-    public Surface getRecordSurface(){
-        if(mRecorder == null) {
-            initRecord();
-        }
-        return mRecordSurface;
-    }
-
+    @Override
     public void setVideoSize(int width, int height){
         mVideoWidth = width;
         mVideoHeight = height;
-    }
-
-    public void stopRecord(){
-        mRecorder.stop();
-        multiTexOffScreenCanvas.onPause();
     }
 
     @Override
@@ -154,54 +136,6 @@ public class VirtualVideoView extends GLSurfaceTextureProducerView {
         });
     }
 
-    private void initRecord() {
-        mRecorder = new MyRecorder();
-        Surface recordSurface = mRecorder.start(this.getWidth(), this.getHeight());
-        multiTexOffScreenCanvas = new MultiTexOffScreenCanvas(this.getWidth(), this.getHeight(), recordSurface) {
-            {
-                setProducedTextureTarget(GLES11Ext.GL_TEXTURE_EXTERNAL_OES);
-            }
-            @Override
-            protected int getInitialTexCount() {
-                return 1;
-            }
-            @Override
-            protected int getRenderMode() {
-                return GLThread.RENDERMODE_WHEN_DIRTY;
-            }
-
-            @Override
-            protected void onGLDraw(ICanvasGL canvas, List<GLTexture> producedTextures, List<GLTexture> consumedTextures) {
-                GLTexture glTexture = producedTextures.get(0);
-                Log.i("llw", "multiTexOffScreenCanvas onGLDraw");
-                if (!consumedTextures.isEmpty()) {
-                    GLTexture consumeTexture = consumedTextures.get(0);
-                    render(canvas, glTexture.getSurfaceTexture(), glTexture.getRawTexture());
-                } else {
-                    render(canvas, glTexture.getSurfaceTexture(), glTexture.getRawTexture());
-                }
-                mRecorder.swapBuffers();
-            }
-        };
-
-        multiTexOffScreenCanvas.setSurfaceTextureCreatedListener(new GLMultiTexProducerView.SurfaceTextureCreatedListener() {
-            @Override
-            public void onCreated(List<GLTexture> producedTextureList) {
-                SurfaceTexture surfaceTexture = producedTextureList.get(0).getSurfaceTexture();
-                surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
-                    @Override
-                    public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-                        Log.i("llw", "Recored SurfaceTexture onFrameAvailable");
-                        multiTexOffScreenCanvas.requestRender();
-                    }
-                });
-                mRecordSurface = new Surface(surfaceTexture);
-            }
-        });
-        multiTexOffScreenCanvas.start();
-        multiTexOffScreenCanvas.onResume();
-    }
-
     private Rect computerTargetRect(int width, int height){
         int viewWidth = getWidth();
         int viewHeight = getHeight();
@@ -223,4 +157,5 @@ public class VirtualVideoView extends GLSurfaceTextureProducerView {
         rect.bottom = viewHeight - offy;
         return rect;
     }
+
 }

@@ -14,19 +14,21 @@ import com.chillingvan.canvasglsample.R;
 import com.chillingvan.canvasglsample.video.MediaPlayerHelper;
 
 import cn.nubia.mediastudio.mediaeditor.virtualvideo.BasicFitTextureFilter;
-import cn.nubia.mediastudio.mediaeditor.virtualvideo.VirtualVideoView;
+import cn.nubia.mediastudio.mediaeditor.virtualvideo.IVirtualVideoView;
+import cn.nubia.mediastudio.mediaeditor.virtualvideo.OffScreenVitualVideoView;
 
 public class VirtualVideoActivity extends AppCompatActivity {
 
     private MediaPlayerHelper mediaPlayer = new MediaPlayerHelper();
     private Surface mediaSurface = null;
-    private VirtualVideoView mediaPlayerTextureView;
-
+    private IVirtualVideoView mediaPlayerTextureView;
+    private IVirtualVideoView mOff;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_media_player1);
         mediaPlayerTextureView = findViewById(R.id.media_player_texture_view);
+        IVirtualVideoView mOff = new OffScreenVitualVideoView(this, 0, 0);
     }
 
     @Override
@@ -88,12 +90,12 @@ public class VirtualVideoActivity extends AppCompatActivity {
     }
 
     public void startRecord(View view){
-        Surface surface = mediaPlayerTextureView.getRecordSurface();
+        Surface surface = mOff.getProduceSurface();
         playMedia(surface);
     }
 
     public void stopRecord(View view){
-        mediaPlayerTextureView.stopRecord();
+        mOff.onPause();
         mediaPlayer.stop();
     }
 
