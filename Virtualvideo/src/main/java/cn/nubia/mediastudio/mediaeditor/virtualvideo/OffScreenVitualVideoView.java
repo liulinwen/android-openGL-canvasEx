@@ -40,9 +40,9 @@ public class OffScreenVitualVideoView implements IVirtualVideoView {
 
     private int mViewWidth;
     private int mViewHeight;
-    public OffScreenVitualVideoView(Context context, int width, int hegiht) {
+    public OffScreenVitualVideoView(Context context, int width, int height) {
         mViewWidth = width;
-        mVideoHeight = hegiht;
+        mViewHeight = height;
         initTextureView();
     }
 
@@ -83,6 +83,7 @@ public class OffScreenVitualVideoView implements IVirtualVideoView {
         mRecorder = new MyRecorder();
         int width = mViewWidth;
         int height = mViewHeight;
+        Log.i("llw", "initTextureView mRecorder start width is:"+ width+ ", height is: "+height);
         Surface recordSurface = mRecorder.start(mViewWidth, mViewHeight);
         multiTexOffScreenCanvas = new MultiTexOffScreenCanvas(width, height, recordSurface) {
             {

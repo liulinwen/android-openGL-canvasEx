@@ -28,7 +28,7 @@ public class VirtualVideoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_media_player1);
         mediaPlayerTextureView = findViewById(R.id.media_player_texture_view);
-        IVirtualVideoView mOff = new OffScreenVitualVideoView(this, 0, 0);
+
     }
 
     @Override
@@ -90,6 +90,7 @@ public class VirtualVideoActivity extends AppCompatActivity {
     }
 
     public void startRecord(View view){
+        mOff = new OffScreenVitualVideoView(this, mediaPlayerTextureView.getWidth(), mediaPlayerTextureView.getHeight());
         Surface surface = mOff.getProduceSurface();
         playMedia(surface);
     }
