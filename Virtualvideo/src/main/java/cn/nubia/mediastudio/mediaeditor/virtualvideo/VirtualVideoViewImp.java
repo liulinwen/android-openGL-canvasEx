@@ -31,7 +31,7 @@ import java.util.List;
  * Created by Chilling on 2017/12/16.
  */
 
-public class VirtualVideoViewImp extends GLSurfaceTextureProducerView implements IVirtualVideoView {
+public class VirtualVideoViewImp extends GLSurfaceTextureProducerView implements IVideoRender {
 
     private TextureFilter textureFilter = new BasicTextureFilter();
 

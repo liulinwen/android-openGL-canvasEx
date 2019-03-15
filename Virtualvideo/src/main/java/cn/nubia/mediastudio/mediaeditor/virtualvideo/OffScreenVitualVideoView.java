@@ -19,7 +19,7 @@ import com.chillingvan.canvasgl.textureFilter.TextureFilter;
 
 import java.util.List;
 
-public class OffScreenVitualVideoView implements IVirtualVideoView {
+public class OffScreenVitualVideoView implements IVideoRender {
     //Video
     protected Surface mProducerSurface;
     private int mVideoWidth;

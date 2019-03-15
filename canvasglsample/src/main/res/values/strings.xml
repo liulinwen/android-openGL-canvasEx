@@ -23,4 +23,5 @@
     <string name="permission_tips">permission needed..╮(╯▽╰)╭</string>
     <string name="first_image">firstImage</string>
     <string name="second_image">secondImage</string>
+    <string name="title_activity_off_screen_vitual">OffScreenVitualActivity</string>
 </resources>

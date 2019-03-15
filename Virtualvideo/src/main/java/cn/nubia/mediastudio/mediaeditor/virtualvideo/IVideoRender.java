@@ -5,7 +5,7 @@ import android.view.Surface;
 
 import com.chillingvan.canvasgl.textureFilter.TextureFilter;
 
-public interface IVirtualVideoView {
+public interface IVideoRender {
     //Video
     public void setVideoSize(int width, int height);
     public Surface getProduceSurface();

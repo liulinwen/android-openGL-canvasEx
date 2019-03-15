@@ -14,15 +14,15 @@ import com.chillingvan.canvasglsample.R;
 import com.chillingvan.canvasglsample.video.MediaPlayerHelper;
 
 import cn.nubia.mediastudio.mediaeditor.virtualvideo.BasicFitTextureFilter;
-import cn.nubia.mediastudio.mediaeditor.virtualvideo.IVirtualVideoView;
+import cn.nubia.mediastudio.mediaeditor.virtualvideo.IVideoRender;
 import cn.nubia.mediastudio.mediaeditor.virtualvideo.OffScreenVitualVideoView;
 
 public class VirtualVideoActivity extends AppCompatActivity {
 
     private MediaPlayerHelper mediaPlayer = new MediaPlayerHelper();
     private Surface mediaSurface = null;
-    private IVirtualVideoView mediaPlayerTextureView;
-    private IVirtualVideoView mOff;
+    private IVideoRender mediaPlayerTextureView;
+    private IVideoRender mOff;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
