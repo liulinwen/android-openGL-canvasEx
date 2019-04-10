@@ -118,6 +118,7 @@ public class OffScreenVitualVideoView implements IVideoRender {
             @Override
             public void onCreated(List<GLTexture> producedTextureList) {
                 SurfaceTexture surfaceTexture = producedTextureList.get(0).getSurfaceTexture();
+                mProducerSurface = new Surface(surfaceTexture);
                 surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
                     @Override
                     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
@@ -125,7 +126,6 @@ public class OffScreenVitualVideoView implements IVideoRender {
                         multiTexOffScreenCanvas.requestRender();
                     }
                 });
-                mProducerSurface = new Surface(surfaceTexture);
             }
         });
         multiTexOffScreenCanvas.start();

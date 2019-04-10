@@ -36,7 +36,6 @@ public class OffScreenVitualActivity extends AppCompatActivity {
     }
 
     public void startRecord(){
-        mOff = new OffScreenVitualVideoView(this, 728, 875);
         Surface surface = mOff.getProduceSurface();
         playMedia(surface);
     }
@@ -44,6 +43,13 @@ public class OffScreenVitualActivity extends AppCompatActivity {
     private void playMedia(Surface surface) {
         mediaPlayer.playMedia(this, surface);
         mOff.setVideoSize(mediaPlayer.getVideoWidth(), mediaPlayer.getVideoHeight());
+    }
+
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        mOff = new OffScreenVitualVideoView(this, 1920, 1088);
     }
 
     @Override

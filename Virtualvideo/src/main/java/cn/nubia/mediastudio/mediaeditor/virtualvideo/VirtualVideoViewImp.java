@@ -128,6 +128,7 @@ public class VirtualVideoViewImp extends GLSurfaceTextureProducerView implements
                 surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
                     @Override
                     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+                        Log.i("llw", "VirtualVideoView requestRenderAndWait");
                         view.requestRenderAndWait();
                     }
                 });

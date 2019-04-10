@@ -107,22 +107,22 @@ public class MultiTexOffScreenActivity extends AppCompatActivity {
                     GLTexture glTexture = producedTextureList.get(i);
                     mediaSurfaces.add(new Surface(glTexture.getSurfaceTexture()));
                 }
-          /*      producedTextureList.get(0).getSurfaceTexture().setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
-                    @Override
-                    public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-                        Log.i("llw", "multiTexOffScreenCanvas onFrameAvailable");
-                        multiTexOffScreenCanvas.requestRender();
-                    }
-                });*/
-                // camera preview
-                SurfaceTexture surfaceTexture = producedTextureList.get(2).getSurfaceTexture();
-                surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
+                producedTextureList.get(0).getSurfaceTexture().setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
                     @Override
                     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
                         Log.i("llw", "multiTexOffScreenCanvas onFrameAvailable");
                         multiTexOffScreenCanvas.requestRender();
                     }
                 });
+                // camera preview
+                SurfaceTexture surfaceTexture = producedTextureList.get(2).getSurfaceTexture();
+               /* surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
+                    @Override
+                    public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+                        Log.i("llw", "multiTexOffScreenCanvas onFrameAvailable");
+                        multiTexOffScreenCanvas.requestRender();
+                    }
+                });*/
                 try {
                     mCamera.setPreviewTexture(surfaceTexture);
                 } catch (IOException ioe) {
