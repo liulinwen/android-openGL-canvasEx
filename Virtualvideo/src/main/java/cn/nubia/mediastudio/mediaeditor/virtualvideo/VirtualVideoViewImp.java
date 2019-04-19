@@ -4,11 +4,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
 
@@ -48,8 +50,8 @@ public class VirtualVideoViewImp extends GLSurfaceTextureProducerView implements
     private Bitmap mBitmap;
     private int mBitmapLeft;
     private int mBitmapTop;
-    private MultiTexOffScreenCanvas multiTexOffScreenCanvas;
-    private MyRecorder mRecorder = null;
+
+    private PositionController mPositionController;
 
     public VirtualVideoViewImp(Context context) {
         super(context);
@@ -85,11 +87,15 @@ public class VirtualVideoViewImp extends GLSurfaceTextureProducerView implements
         this.requestRender();
     }
 
+    ICanvasGL.BitmapMatrix matrix = new ICanvasGL.BitmapMatrix();
+
     @Override
     public void rotate(float degree, float px, float py) {
         mDegree = degree;
         mRotateCenterX = px;
         mRotateCenterY = py;
+        matrix.rotateX(degree);
+        matrix.rotateY(degree);
         this.requestRender();
     }
 
@@ -97,21 +103,29 @@ public class VirtualVideoViewImp extends GLSurfaceTextureProducerView implements
     public void setVideoSize(int width, int height){
         mVideoWidth = width;
         mVideoHeight = height;
+        mPositionController.setImageSize(width, height);
     }
 
     @Override
     protected void onGLDraw(ICanvasGL canvas, SurfaceTexture producedSurfaceTexture, RawTexture producedRawTexture, @Nullable SurfaceTexture sharedSurfaceTexture, @Nullable BasicTexture sharedTexture) {
+        if(mPositionController == null){
+            mPositionController = new PositionController(getWidth(), getHeight());
+        }
         render(canvas, producedSurfaceTexture, producedRawTexture);
-        Log.i("llw", "VirtualVideoView onGLDraw");
     }
 
     private void render(ICanvasGL canvas, SurfaceTexture producedSurfaceTexture, RawTexture producedRawTexture) {
         canvas.save();
         canvas.rotate(mDegree, mRotateCenterX, mRotateCenterY);
+        //canvas.scale(scaledRatio, scaledRatio);
+        //canvas.translate(lastXMove, lastYMove);
         producedRawTexture.setIsFlippedVertically(true);
-        Rect tect = computerTargetRect(mVideoWidth, mVideoHeight);
-        Log.i("llw", "VirtualVideoView render rect is:"+tect);
-        canvas.drawSurfaceTexture(producedRawTexture, producedSurfaceTexture, tect.left, tect.top, tect.right, tect.bottom, textureFilter);
+
+        //Rect tect = computerTargetRect(mVideoWidth, mVideoHeight);
+        RectF tect = mPositionController.getPostion();
+        //Log.i("llw", "VirtualVideoView render rect is:"+tect);
+        canvas.drawSurfaceTexture(producedRawTexture, producedSurfaceTexture,
+                (int)tect.left, (int)tect.top, (int)tect.right, (int)tect.bottom, textureFilter);
         //canvas.drawSurfaceTexture(producedRawTexture, producedSurfaceTexture, 0, (int)(producedRawTexture.getHeight()*0.128f), producedRawTexture.getWidth(), (int)(producedRawTexture.getHeight()*0.744f), textureFilter);
         if(mBitmap != null && !mBitmap.isRecycled()) {
             canvas.invalidateTextureContent(mBitmap);
@@ -128,11 +142,11 @@ public class VirtualVideoViewImp extends GLSurfaceTextureProducerView implements
                 surfaceTexture.setOnFrameAvailableListener(new SurfaceTexture.OnFrameAvailableListener() {
                     @Override
                     public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-                        Log.i("llw", "VirtualVideoView requestRenderAndWait");
                         view.requestRenderAndWait();
                     }
                 });
                 mProducerSurface = new Surface(surfaceTexture);
+
             }
         });
     }
@@ -159,4 +173,110 @@ public class VirtualVideoViewImp extends GLSurfaceTextureProducerView implements
         return rect;
     }
 
+    /**
+     * 记录当前操作的状态，可选值为STATUS_INIT、STATUS_ZOOM_OUT、STATUS_ZOOM_IN和STATUS_MOVE
+     */
+    private int currentStatus;
+    /**
+     * 初始化状态常量
+     */
+    public static final int STATUS_INIT = 1;
+    /**
+     * 图片放大状态常量
+     */
+    public static final int STATUS_ZOOM_OUT = 2;
+    /**
+     * 图片缩小状态常量
+     */
+    public static final int STATUS_ZOOM_IN = 3;
+    /**
+     * 图片拖动状态常量
+     */
+    public static final int STATUS_MOVE = 4;
+    /**
+     * 记录上次手指移动时的横坐标
+     */
+    private float lastXMove = -1;
+    /**
+     * 记录上次手指移动时的纵坐标
+     */
+    private float lastYMove = -1;
+    /**
+     * 记录上次两指之间的距离
+     */
+    private double lastFingerDis;
+    /**
+     * 记录手指移动的距离所造成的缩放比例
+     */
+    private float scaledRatio = 1;
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_POINTER_DOWN:
+                if (event.getPointerCount() == 2) {
+                    // 当有两个手指按在屏幕上时，计算两指之间的距离
+                    lastFingerDis = distanceBetweenFingers(event);
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (event.getPointerCount() == 1) {
+                    // 只有单指按在屏幕上移动时，为拖动状态
+                    float xMove = event.getX();
+                    float yMove = event.getY();
+                    if (lastXMove == -1 && lastYMove == -1) {
+                        lastXMove = xMove;
+                        lastYMove = yMove;
+                    }
+                    currentStatus = STATUS_MOVE;
+                    // ------------拖动数值----------------
+                    //after(xMove,yMove),befor(lastXMove,lastYMove)
+                    //lastXMove -= xMove;
+                    //lastYMove -= yMove;
+                    mPositionController.move(xMove - lastXMove, yMove -lastYMove);
+                    lastXMove = xMove;
+                    lastYMove = yMove;
+
+                } else if (event.getPointerCount() == 2) {
+                    // 有两个手指按在屏幕上移动时，为缩放状态
+                    double fingerDis = distanceBetweenFingers(event);
+                    if (fingerDis > lastFingerDis) {
+                        currentStatus = STATUS_ZOOM_OUT;
+                    } else {
+                        currentStatus = STATUS_ZOOM_IN;
+                    }
+                    // ------------缩放倍数----------------
+                    scaledRatio =  (float) (fingerDis / lastFingerDis);
+                    mPositionController.zoomIn(event.getX(), event.getY(), scaledRatio);
+                }
+                break;
+            case MotionEvent.ACTION_POINTER_UP:
+                if (event.getPointerCount() == 2) {
+                     //手指离开屏幕时将临时值还原
+                    lastXMove = -1;
+                    lastYMove = -1;
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                // 手指离开屏幕时将临时值还原
+                lastXMove = -1;
+                lastYMove = -1;
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
+
+    /**
+     * 计算两个手指之间的距离。
+     *
+     * @param event
+     * @return 两个手指之间的距离
+     */
+    private double distanceBetweenFingers(MotionEvent event) {
+        float disX = Math.abs(event.getX(0) - event.getX(1));
+        float disY = Math.abs(event.getY(0) - event.getY(1));
+        return Math.sqrt(disX * disX + disY * disY);
+    }
 }

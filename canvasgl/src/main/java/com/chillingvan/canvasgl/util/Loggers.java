@@ -28,7 +28,7 @@ import android.util.Log;
 
 public class Loggers {
 
-    public static boolean DEBUG = false;
+    public static boolean DEBUG = true;
 
     public static void d(String tag, String msg) {
         if (DEBUG) {
